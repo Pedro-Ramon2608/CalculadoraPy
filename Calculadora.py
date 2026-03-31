@@ -1,4 +1,5 @@
 import flet as ft
+from decimal import Decimal
 
 botoes = [
     {"operador": "AC", "fonte": "black", "fundo": "grey"},
@@ -32,11 +33,22 @@ def main(page: ft.Page):
 
     result = ft.Text(value = "0", color = "white", size = 20)
 
-    def calcule():
-        pass
+    def calcule(operador, value_at):
+        try:
+            value = eval(value_at)
+
+            if operador == "%":
+                value /= 100
+            elif operador == "+-":
+                value = -value
+        except:
+            return 'Impossível dividir por 0'
+        
+        digits = min(abs(Decimal(value).as_tuple().exponent), 5)
+        return format(value, f".{digits}f")
 
     def select(e):
-        value_at = result.value if result.value != "0" else ""
+        value_at = result.value if result.value not in ("0", "Impossível dividir por 0") else ""
         value = e.control.content.value
 
         if value.isdigit():
@@ -45,12 +57,12 @@ def main(page: ft.Page):
             value = "0"
         else:
             if value_at and value_at[-1] in ("/", "*", "-", "+", "."):
-                value_at = value_at[-1]
+                value_at = value_at[:-1]
             
             value = value_at + value
 
             if value[-1] in ("=", "%", "+-"):
-                value = calcule
+                value = calcule(operador=value[-1], value_at=value_at)
         
         result.value = value
         result.update()
